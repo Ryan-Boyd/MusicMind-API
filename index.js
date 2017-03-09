@@ -4,6 +4,11 @@ var bodyParser = require('body-parser');
 var request = require('request');
 var mongo = require('mongodb').MongoClient
 
+var app = express();
+app.use(bodyParser.json());
+app.use(express.static(__dirname));
+app.listen(process.env.PORT || 3000);
+
 //connect to Firebase
 /* firebase.initializeApp({
     credential: admin.credential.cert({
@@ -14,21 +19,55 @@ var mongo = require('mongodb').MongoClient
     databaseURL: ""
 }); */
 
+/* MONGO */
 
-//connect to Mongo
-/*mongo.connect(url, function(err, db) {
-  console.log("Connected correctly to server");
-
-  db.close();
-});
-*/
+var url = "mongodb://ryan_boyd:" + encodeURIComponent("ZDZ2HetdfUlTo8Zl") + "@features-shard-00-00-edm1t.mongodb.net:27017,features-shard-00-01-edm1t.mongodb.net:27017,features-shard-00-02-edm1t.mongodb.net:27017/features?ssl=true&replicaSet=features-shard-0&authSource=admin";
 
 
-var app = express();
-app.use(bodyParser.json());
+/* GET */
 
 app.get("/authenticate", function(req, res) {});
 
+//get databases
+app.get("/databases", function(req, res){
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+
+    var adminDb = db.admin();
+
+    // List all the available databases
+    adminDb.listDatabases(function(err, dbs) {
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(dbs);
+      console.log(dbs);
+      db.close();
+    });
+  });
+});
+
+//get data
+app.get("/data", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    var dump = [];
+    var cursor = db.collection("posts").find();
+    cursor.forEach(function(doc){
+      dump.push(doc);
+    },
+    function(){
+      res.status(200).send({"mongoData":dump});
+      db.close();
+    });
+  });
+});
+
+//get user data
 app.get("/user/:id", function(req, res) {
     var userId = req.params.id;
 
@@ -43,6 +82,10 @@ app.get("/user/:id", function(req, res) {
     }
 });
 
+
+/* POST */
+
+//upload video to servers
 app.post("/upload", function(req, res) {
 
     //however you send video data
@@ -56,6 +99,7 @@ app.post("/upload", function(req, res) {
     }
 });
 
+//send video to others
 app.post("/deliver", function(req, res) {
     var videoId = req.body.videoId;
     var aSendTo = req.body.sendToUserWithId;
@@ -70,6 +114,3 @@ app.post("/deliver", function(req, res) {
       res.status(500).send("Error");
     }
 });
-
-app.use(express.static(__dirname));
-app.listen(process.env.PORT || 3000);
