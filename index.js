@@ -3,6 +3,7 @@ var firebase = require("firebase-admin");
 var bodyParser = require('body-parser');
 var request = require('request');
 var mongo = require('mongodb').MongoClient
+var aws = require('aws-sdk');
 
 var app = express();
 app.use(bodyParser.json());
@@ -23,6 +24,25 @@ app.listen(process.env.PORT || 3000);
 
 var url = "mongodb://ryan_boyd:" + encodeURIComponent("ZDZ2HetdfUlTo8Zl") + "@features-shard-00-00-edm1t.mongodb.net:27017,features-shard-00-01-edm1t.mongodb.net:27017,features-shard-00-02-edm1t.mongodb.net:27017/features?ssl=true&replicaSet=features-shard-0&authSource=admin";
 
+/* AWS */
+
+/*
+// Create an S3 client
+var s3 = new AWS.S3();
+
+var bucketName = 'node-sdk-sample-' + uuid.v4();
+var keyName = 'hello_world.txt';
+
+s3.createBucket({Bucket: bucketName}, function() {
+  var params = {Bucket: bucketName, Key: keyName, Body: 'Hello World!'};
+  s3.putObject(params, function(err, data) {
+    if (err)
+      console.log(err)
+    else
+      console.log("Successfully uploaded data to " + bucketName + "/" + keyName);
+  });
+});
+*/
 
 /* GET */
 
