@@ -4,11 +4,16 @@ var bodyParser = require('body-parser');
 var request = require('request');
 var mongo = require('mongodb').MongoClient
 var aws = require('aws-sdk');
+var pg = require('pg');
+
+var lyrics = require('./lyrics');
 
 var app = express();
 app.use(bodyParser.json());
 app.use(express.static(__dirname));
 app.listen(process.env.PORT || 3000);
+
+/* Firebase */
 
 //connect to Firebase
 /* firebase.initializeApp({
@@ -22,9 +27,32 @@ app.listen(process.env.PORT || 3000);
 
 /* MONGO */
 
-var url = "mongodb://ryan_boyd:" + encodeURIComponent("ZDZ2HetdfUlTo8Zl") + "@features-shard-00-00-edm1t.mongodb.net:27017,features-shard-00-01-edm1t.mongodb.net:27017,features-shard-00-02-edm1t.mongodb.net:27017/features?ssl=true&replicaSet=features-shard-0&authSource=admin";
+var url = "mongodb://ryan_boyd:" + encodeURIComponent("ZDZ2HetdfUlTo8Zl") + "@features-shard-00-00-edm1t.mongodb.net:27017,features-shard-00-01-edm1t.mongodb.net:27017,features-shard-00-02-edm1t.mongodb.net:27017/MetaMind?ssl=true&replicaSet=features-shard-0&authSource=admin";
 
 /* AWS */
+
+/*
+//postgresql
+var sUrl = "postgres://ryanboyd:"+ encodeURIComponent("mm456$%^") + "@featuresanalysis.cdk20zakvpps.us-west-1.rds.amazonaws.com:5432";
+var client = new pg.Client(sUrl);
+
+//create postgresql client
+app.get("/pg", function(req, res){
+  client.connect(function(err) {
+   if(err){
+     console.log(err);
+   }
+       console.log('PG connected!');
+
+  });
+  pg.connect(sUrl, function(err, client, done){
+    if(err){
+      console.log(err);
+    }
+    console.log(client);
+    console.log(done);
+  });
+}); */
 
 /*
 // Create an S3 client
@@ -69,7 +97,7 @@ app.get("/databases", function(req, res){
   });
 });
 
-//get data
+//get complete posts collection
 app.get("/data", function(req, res) {
   mongo.connect(url, function(err, db) {
     if(err){
@@ -82,6 +110,86 @@ app.get("/data", function(req, res) {
     },
     function(){
       res.status(200).send({"mongoData":dump});
+      db.close();
+    });
+  });
+});
+
+//get lyrics
+app.get("/lyrics", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    db.collection("posts").distinct("lyrics", function(err, docs){
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(lyrics.getLyrics(docs));
+      db.close();
+    });
+  });
+});
+
+//get lyrics count of words
+app.get("/lyrics/words", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    db.collection("posts").distinct("lyrics", function(err, docs){
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(lyrics.getWords(docs));
+      db.close();
+    });
+  });
+});
+
+//get list of artists
+app.get("/artist", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    db.collection("posts").distinct("artist", function(err, docs){
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(docs);
+      db.close();
+    });
+  });
+});
+
+//get list of tracks
+app.get("/track", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    db.collection("posts").distinct("track", function(err, docs){
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(docs);
+      db.close();
+    });
+  });
+});
+
+//get list of albums
+app.get("/album", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    db.collection("posts").distinct("album", function(err, docs){
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(docs);
       db.close();
     });
   });
