@@ -147,6 +147,45 @@ app.get("/lyrics/words", function(req, res) {
   });
 });
 
+//get lyrics word frequency
+app.get("/lyrics/freq", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    db.collection("posts").distinct("lyrics", function(err, docs){
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(lyrics.getWordFrequency(docs));
+      db.close();
+    });
+  });
+});
+
+//get lyrics word per track duration
+app.get("/lyrics/duration", function(req, res) {
+  mongo.connect(url, function(err, db) {
+    if(err){
+      console.log(err);
+    }
+    db.collection("posts").aggregate([
+      { "$group": {
+        "_id": {
+           "lyrics": "$lyrics",
+           "feature": "$feature"
+        }
+      }
+  }], function(err, docs){
+      if(err){
+        console.log(err);
+      }
+      res.status(200).send(lyrics.getWordsPerDuration(docs));
+      db.close();
+    });
+  });
+});
+
 //get list of artists
 app.get("/artist", function(req, res) {
   mongo.connect(url, function(err, db) {
